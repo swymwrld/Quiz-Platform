@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Quiz Platform{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            min-height: 100vh;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen font-sans antialiased text-gray-100">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-900 border-b border-gray-800 py-4 px-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-indigo-400 hover:text-indigo-300 transition">🧠 Quiz Platform</a>
+            <div class="space-x-4">
+                {% if session.get('admin') %}
+                    <a href="/admin" class="text-gray-300 hover:text-white transition">Admin Dashboard</a>
+                    <a href="/admin/questions" class="text-gray-300 hover:text-white transition">Questions</a>
+                    <a href="/results" class="text-gray-300 hover:text-white transition">Results</a>
+                    <a href="/logout" class="text-red-400 hover:text-red-300 transition">Logout</a>
+                {% else %}
+                    <a href="/" class="text-gray-300 hover:text-white transition">Home</a>
+                    <a href="/leaderboard" class="text-gray-300 hover:text-white transition">Leaderboard</a>
+                    <a href="/login" class="text-gray-300 hover:text-white transition">Admin Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="max-w-3xl mx-auto mt-4 w-full px-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="px-4 py-3 rounded mb-4 shadow-md {% if category == 'error' %}bg-red-500 text-white{% else %}bg-green-500 text-white{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center py-10 px-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-4 text-center text-gray-400 border-t border-gray-800">
+        <p>&copy; 2026 Quiz Platform. Built with Flask & Tailwind.</p>
+    </footer>
+
+</body>
+</html>

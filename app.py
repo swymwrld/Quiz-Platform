@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, flash, make_response
 import sqlite3
 import os
+import csv
+import io
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey123"
@@ -58,13 +60,15 @@ def login():
     if request.method=="POST":
         if request.form["username"]==ADMIN_USERNAME and request.form["password"]==ADMIN_PASSWORD:
             session["admin"]=True
+            flash("Logged in successfully as Admin.", "success")
             return redirect("/admin")
-        return "Wrong credentials"
+        flash("Invalid Credentials", "error")
     return render_template("login.html")
 
 @app.route("/logout")
 def logout():
     session.pop("admin",None)
+    flash("Logged out successfully.", "success")
     return redirect("/login")
 
 # -----------------------------
@@ -73,6 +77,7 @@ def logout():
 @app.route("/admin", methods=["GET","POST"])
 def admin():
     if not session.get("admin"):
+        flash("Please log in to access this page.", "error")
         return redirect("/login")
 
     if request.method=="POST":
@@ -83,6 +88,7 @@ def admin():
                          request.form["option3"],request.form["option4"],request.form["answer"]))
         conn.commit()
         conn.close()
+        flash("Question added successfully!", "success")
 
     return render_template("admin.html")
 
@@ -106,6 +112,7 @@ def delete_question(id):
     conn.execute("DELETE FROM questions WHERE id=?", (id,))
     conn.commit()
     conn.close()
+    flash("Question deleted.", "success")
     return redirect("/admin/questions")
 
 @app.route("/edit_question/<int:id>", methods=["GET","POST"])
@@ -122,6 +129,7 @@ def edit_question(id):
                    request.form["option3"],request.form["option4"],request.form["answer"],id))
         conn.commit()
         conn.close()
+        flash("Question updated successfully!", "success")
         return redirect("/admin/questions")
 
     c.execute("SELECT * FROM questions WHERE id=?", (id,))
@@ -196,7 +204,7 @@ def delete_result(id):
     conn.execute("DELETE FROM users WHERE id=?", (id,))
     conn.commit()
     conn.close()
-
+    flash("Result deleted.", "success")
     return redirect("/results")
 
 # -----------------------------
@@ -223,7 +231,7 @@ def view_results():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    c.execute("SELECT * FROM users")
+    c.execute("SELECT * FROM users ORDER BY id DESC")
     users = c.fetchall()
 
     # analytics calculations
@@ -256,7 +264,32 @@ def clear_results():
     conn.execute("DELETE FROM users")
     conn.commit()
     conn.close()
+    flash("All results cleared.", "success")
     return redirect("/results")
+
+# -----------------------------
+# EXPORT RESULTS TO CSV
+# -----------------------------
+@app.route("/admin/export")
+def export_csv():
+    if not session.get("admin"):
+        return redirect("/login")
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT id, name, email, score, percentage, status FROM users")
+    users = c.fetchall()
+    conn.close()
+
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['ID', 'Name', 'Email', 'Score', 'Percentage', 'Status'])
+    cw.writerows(users)
+
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=results.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 if __name__ == "__main__":
     app.run(debug=True)

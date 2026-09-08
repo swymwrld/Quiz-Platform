@@ -1,22 +1,23 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Instructions</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% extends "base.html" %}
+{% block title %}Instructions - Quiz Platform{% endblock %}
+{% block content %}
+<div class="w-full max-w-2xl bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+    <h2 class="text-3xl font-bold text-center text-white mb-6">Instructions</h2>
+    
+    <div class="space-y-4 text-gray-300 mb-8 bg-gray-900 p-6 rounded-lg border border-gray-700">
+        <p class="flex items-start"><span class="mr-2">✅</span> All questions are compulsory.</p>
+        <p class="flex items-start"><span class="mr-2">⏱️</span> You will have 30 seconds per question.</p>
+        <p class="flex items-start"><span class="mr-2">❌</span> Do not refresh the page during the exam.</p>
+        <p class="flex items-start"><span class="mr-2">🎯</span> You need 60% or above to PASS.</p>
+    </div>
 
-</head>
-<body>
-    <h2>Quiz Instructions</h2>
-    <ul>
-        <li>Each question has 30 seconds.</li>
-        <li>You cannot go back.</li>
-        <li>Minimum 60% required to pass.</li>
-    </ul>
-
-    <form action="/quiz" method="POST">
+    <form action="/quiz" method="POST" class="text-center">
         <input type="hidden" name="name" value="{{ name }}">
         <input type="hidden" name="email" value="{{ email }}">
-        <button type="submit">Start Quiz</button>
+        <button type="submit" 
+                class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold py-3 px-10 rounded-lg transition transform hover:scale-105 shadow-lg text-lg">
+            Start Exam
+        </button>
     </form>
-</body>
-</html>
+</div>
+{% endblock %}

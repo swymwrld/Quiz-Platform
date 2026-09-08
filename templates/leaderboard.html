@@ -1,41 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Leaderboard</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-<div class="container" style="width:700px;">
-<h2>🏆 Leaderboard - Top Performers</h2>
-
-{% if leaders|length == 0 %}
-<h3>No attempts yet.</h3>
-{% else %}
-
-<table style="width:100%; margin-top:25px;">
-<tr>
-<th>Rank</th>
-<th>Name</th>
-<th>Email</th>
-<th>Score</th>
-<th>%</th>
-</tr>
-
-{% for user in leaders %}
-<tr>
-<td>{{ loop.index }}</td>
-<td>{{ user[0] }}</td>
-<td>{{ user[1] }}</td>
-<td>{{ user[2] }}</td>
-<td>{{ user[3] }}%</td>
-</tr>
-{% endfor %}
-</table>
-{% endif %}
-<br>
-<a href="/"><button>Take Quiz</button></a>
-
+{% extends "base.html" %}
+{% block title %}Leaderboard - Quiz Platform{% endblock %}
+{% block content %}
+<div class="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-8 border border-gray-700">
+    <div class="text-center mb-8">
+        <h2 class="text-4xl font-bold text-white mb-2">🏆 Top Performers</h2>
+        <p class="text-gray-400">The highest scoring candidates</p>
+    </div>
+    
+    <div class="overflow-hidden rounded-lg border border-gray-700">
+        <table class="w-full text-left bg-gray-900">
+            <thead class="bg-gray-800 border-b border-gray-700">
+                <tr>
+                    <th class="py-4 px-6 text-indigo-400 font-bold tracking-wider">Rank</th>
+                    <th class="py-4 px-6 text-indigo-400 font-bold tracking-wider">Name</th>
+                    <th class="py-4 px-6 text-indigo-400 font-bold tracking-wider text-right">Score</th>
+                    <th class="py-4 px-6 text-indigo-400 font-bold tracking-wider text-right">Percentage</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+                {% for user in leaders %}
+                <tr class="hover:bg-gray-800 transition">
+                    <td class="py-4 px-6 font-bold 
+                        {% if loop.index == 1 %}text-yellow-400 text-xl
+                        {% elif loop.index == 2 %}text-gray-300 text-lg
+                        {% elif loop.index == 3 %}text-amber-600 text-lg
+                        {% else %}text-gray-500{% endif %}">
+                        #{{ loop.index }}
+                    </td>
+                    <td class="py-4 px-6 text-white font-medium">{{ user[0] }}</td>
+                    <td class="py-4 px-6 text-right text-gray-300">{{ user[2] }}</td>
+                    <td class="py-4 px-6 text-right font-bold text-green-400">{{ user[3]|round(1) }}%</td>
+                </tr>
+                {% endfor %}
+                {% if not leaders %}
+                <tr>
+                    <td colspan="4" class="py-8 text-center text-gray-500">No attempts yet.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 </div>
-</body>
-</html>
+{% endblock %}

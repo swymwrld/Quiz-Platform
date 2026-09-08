@@ -1,48 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Exam</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-<style>
-.exam-layout{
-    display:flex;
-    gap:30px;
-    padding:30px;
-}
-
-.palette{
-    width:220px;
-    background:#1e293b;
-    padding:20px;
-    border-radius:12px;
-    height:fit-content;
-}
-
-.palette-grid{
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-    gap:10px;
-}
-
-.q-btn{
-    padding:10px;
-    border:none;
-    border-radius:6px;
-    background:#ef4444;
-    color:white;
-    cursor:pointer;
-}
-
-.answered{ background:#22c55e; }
-
-.timer-box{
-    text-align:center;
-    font-size:24px;
-    margin-bottom:15px;
-}
-</style>
-
+{% extends "base.html" %}
+{% block title %}Quiz - Quiz Platform{% endblock %}
+{% block head %}
 <script>
 let answers = {};
 let current = 0;
@@ -63,7 +21,8 @@ function loadQuestion(index){
 
 function saveAnswer(qIndex,value){
     answers[qIndex] = value;
-    document.getElementById("btn"+qIndex).classList.add("answered");
+    document.getElementById("btn"+qIndex).classList.remove("bg-gray-700");
+    document.getElementById("btn"+qIndex).classList.add("bg-green-500", "text-white");
     updateStats();
 }
 
@@ -104,84 +63,81 @@ window.onload = function(){
     loadQuestion(0);
 }
 </script>
-</head>
+{% endblock %}
 
-<body>
+{% block content %}
+<div class="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-8">
+    
+    <!-- LEFT SIDE QUESTIONS -->
+    <div class="flex-1">
+        <form id="quizForm" action="/result" method="POST">
+            <input type="hidden" name="name" value="{{ name }}">
+            <input type="hidden" name="email" value="{{ email }}">
 
-<div class="timer-box">
-⏱ Time Left: <span id="timer"></span>
-<br>
-Attempted: <span id="attempted">0</span> / {{ questions|length }}
+            {% for q in questions %}
+            <div class="question-block bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700" style="display:none;">
+                
+                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                    <h2 class="text-xl font-bold text-indigo-400">Question {{ loop.index }} of {{ questions|length }}</h2>
+                    <span class="bg-gray-900 px-3 py-1 rounded text-sm text-gray-400">Score: 1</span>
+                </div>
+
+                <h3 class="text-2xl mb-8 text-white font-medium">{{ q[1] }}</h3>
+
+                <div class="space-y-4">
+                    {% for opt in [q[2], q[3], q[4], q[5]] %}
+                    <label class="flex items-center p-4 bg-gray-900 border border-gray-700 rounded-lg cursor-pointer hover:bg-gray-700 transition">
+                        <input type="radio" name="temp{{loop.index0}}" class="w-5 h-5 text-indigo-600 bg-gray-800 border-gray-600 focus:ring-indigo-500 focus:ring-2"
+                               onclick="saveAnswer({{loop.index0}}, `{{ opt }}`)">
+                        <span class="ml-4 text-lg text-gray-200">{{ opt }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-8 flex justify-between">
+                    <button type="button" onclick="loadQuestion(current-1)" 
+                            class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition disabled:opacity-50">
+                        Previous
+                    </button>
+                    <button type="button" onclick="loadQuestion(current+1)" 
+                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition">
+                        Next
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </form>
+    </div>
+
+    <!-- RIGHT SIDE PALETTE & TIMER -->
+    <div class="w-full md:w-72 space-y-6">
+        <!-- Timer Box -->
+        <div class="bg-gray-800 rounded-xl p-6 shadow-2xl border border-gray-700 text-center">
+            <h3 class="text-gray-400 uppercase tracking-wider text-sm font-bold mb-2">Time Left</h3>
+            <div id="timer" class="text-4xl font-mono text-red-400 font-bold mb-4">--:--</div>
+            
+            <div class="flex justify-between items-center text-sm border-t border-gray-700 pt-4">
+                <span class="text-gray-400">Attempted</span>
+                <span class="font-bold text-white"><span id="attempted">0</span> / {{ questions|length }}</span>
+            </div>
+        </div>
+
+        <!-- Question Palette -->
+        <div class="bg-gray-800 rounded-xl p-6 shadow-2xl border border-gray-700">
+            <h3 class="text-gray-400 uppercase tracking-wider text-sm font-bold mb-4 text-center">Question Palette</h3>
+            <div class="grid grid-cols-5 gap-2 mb-6">
+                {% for q in questions %}
+                <button type="button" id="btn{{loop.index0}}" onclick="loadQuestion({{loop.index0}})"
+                        class="w-10 h-10 rounded bg-gray-700 text-gray-300 font-bold hover:bg-gray-600 transition flex items-center justify-center">
+                    {{ loop.index }}
+                </button>
+                {% endfor %}
+            </div>
+            <button type="button" onclick="submitQuiz()" 
+                    class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-bold py-3 rounded-lg transition transform hover:scale-105 shadow-lg">
+                Submit Exam
+            </button>
+        </div>
+    </div>
 </div>
-
-<div class="exam-layout">
-
-<!-- LEFT SIDE QUESTIONS -->
-<div style="flex:1;">
-<form id="quizForm" action="/result" method="POST">
-<input type="hidden" name="name" value="{{ name }}">
-<input type="hidden" name="email" value="{{ email }}">
-
-{% for q in questions %}
-<div class="question-block" style="display:none;">
-<h2>Question {{ loop.index }}</h2>
-<h3>{{ q[1] }}</h3>
-
-<label class="option">
-<input type="radio"
-       name="temp{{loop.index0}}"
-       onclick="saveAnswer({{loop.index0}}, `{{ q[2] }}`)">
-<span>{{ q[2] }}</span>
-</label>
-
-<label class="option">
-<input type="radio"
-       name="temp{{loop.index0}}"
-       onclick="saveAnswer({{loop.index0}}, `{{ q[3] }}`)">
-<span>{{ q[3] }}</span>
-</label>
-
-<label class="option">
-<input type="radio"
-       name="temp{{loop.index0}}"
-       onclick="saveAnswer({{loop.index0}}, `{{ q[4] }}`)">
-<span>{{ q[4] }}</span>
-</label>
-
-<label class="option">
-<input type="radio"
-       name="temp{{loop.index0}}"
-       onclick="saveAnswer({{loop.index0}}, `{{ q[5] }}`)">
-<span>{{ q[5] }}</span>
-</label>
-
-<br><br>
-<button type="button" onclick="loadQuestion(current-1)">Previous</button>
-<button type="button" onclick="loadQuestion(current+1)">Next</button>
-
-</div>
-{% endfor %}
-
-<br>
-<button type="button" onclick="submitQuiz()">Submit Exam</button>
-</form>
-</div>
-
-<!-- RIGHT SIDE PALETTE -->
-<div class="palette">
-<h3>Questions</h3>
-<div class="palette-grid">
-{% for q in questions %}
-<button type="button"
-        id="btn{{loop.index0}}"
-        class="q-btn"
-        onclick="loadQuestion({{loop.index0}})">
-{{loop.index}}
-</button>
-{% endfor %}
-</div>
-</div>
-
-</div>
-</body>
-</html>
+{% endblock %}
