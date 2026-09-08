@@ -178,7 +178,13 @@ def result():
     questions=conn.execute("SELECT * FROM questions").fetchall()
     conn.close()
 
-    score=sum(1 for i,q in enumerate(questions) if request.form.get(f"q{i}")==q[6])
+    score = 0
+    for i, q in enumerate(questions):
+        user_answer = request.form.get(f"q{i}", "").strip()
+        correct_answer = q[6].strip() if q[6] else ""
+        if user_answer == correct_answer:
+            score += 1
+
     percentage=(score/len(questions))*100 if questions else 0
     status="PASS" if percentage>=60 else "FAIL"
 
